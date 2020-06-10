@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>科研文献管理器</title>
+    <link rel="stylesheet" href="css/elementui.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .el-main {
+            background-color: #ffffff;
+        }
+        .jx{
+            border-bottom: 2px solid #87CEFA;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+<script src="js/vue.js"></script>
+<script src="js/elementui.js"></script>
+<script src="js/axios.js"></script>
+<script src="/js/util.js"></script>
+<div id="app">
+    <el-container>
+        <el-header height="100">
+            <el-row :gutter="20">
+                <el-col :span="6"><img src="images/logo.jpg"  width="90" height="85"></el-col>
+                <el-col :span="10"><h3 style="color: #0abdfe"><i class="el-icon-pear"></i>科研文献管理器</h3></el-col>
+            </el-row>
+        </el-header>
+        <HR align="center" width="100%" color=#DB7093 SIZE=1>
+        <el-main>
+            <el-row>
+                <el-col :span="8"><span> 作者:{{this.pojo.author}}</span></el-col>
+                <el-col :span="8"><span> 单位:{{this.pojo.company}}</span></el-col>
+                <el-col :span="8"><span>   </span></el-col>
+            </el-row>
+            <HR align="center" width="100%" color=#DB7093 SIZE=1>
+            <el-row>
+            <el-col :span="20" :push="2">
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>{{ this.pojo.title}}</span>
+                        <el-button type="primary" icon="el-icon-edit" circle @click="formVisible=true">修改</el-button>
+                        <el-button type="success" icon="el-icon-check" circle onclick="location.href='MyPaper.html'">返回</el-button>
+
+
+                    </div>
+                    <div>
+                        {{this.pojodetials.content}}
+                    </div>
+                </el-card>
+            </el-col>
+            </el-row>
+        </el-main>
+        <div class="add-form">
+            <!--弹出窗口-->
+            <el-dialog  title="编辑" :visible.sync="formVisible" >
+                <el-form label-width="80px">
+                    <el-form-item label="论文内容"><el-input :disabled="true"  v-model="pojodetials.id"></el-input></el-form-item>
+                    <el-form-item label="论文内容"><el-input :disabled="true"  v-model="pojodetials.wid"></el-input></el-form-item>
+                    <el-form-item label="论文内容"><el-input   v-model="pojodetials.content"></el-input></el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="save()">保存</el-button>
+                        <el-button @click="formVisible = false" >关闭</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-dialog>
+        </div>
+    </el-container>
+</div>
+<script>
+    new Vue({
+        el:"#app",
+        data(){
+            return {
+                pojo:{},
+                pojodetials:{},
+                id:0,
+                formVisible:false
+            }
+        },
+        created(){
+            this.id=getQueryString('id');
+            this.pojodetials={wid:getQueryString('id')};
+            this.fetchData()
+        },
+        methods: {
+            fetchData(){
+                axios.get(`/Paper/findById.do?id=${this.id}`).then(response => {
+                    this.pojo = response.data;
+                })
+                axios.get(`/paperDetails/findByWid.do?id=${this.id}`).then(response => {
+                    this.pojodetials = response.data;
+
+                })
+            },
+            save (){
+                console.log(this.pojodetials)
+                axios.post(`/paperDetails/update.do`,this.pojodetials).then(response => {
+                    this.fetchData (); //刷新列表
+                    this.formVisible = false ;//关闭窗口
+                });
+            }
+        }
+    })
+</script>
+</body>
+</html>

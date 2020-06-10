@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的主题</title>
+    <link rel="stylesheet" href="css/elementui.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<script src="js/vue.js"></script>
+<script src="js/elementui.js"></script>
+<script src="js/axios.js"></script>
+<div id="app">
+    <el-menu
+            :default-active="activeIndex"
+            class="el-menu-demo"
+            mode="horizontal"
+            @select="handleSelect"
+            background-color="#545c64"
+            text-color="#"
+            active-text-color="#ffd04b">
+            <el-col :span="2" :offset="22"><el-submenu index="1">
+                <template slot="title"><el-avatar>个人中心</el-avatar></template>
+                <el-menu-item index="1-1"><a href="/MyPaper.html" target="_blank">我的论文</a></el-menu-item>
+                <el-menu-item index="1-2"><a href="/MyTheme.html" target="_blank">我的主题</a></el-menu-item>
+            </el-submenu>
+            </el-col>
+    </el-menu>
+    <el-row class="jx"><p><i class="el-icon-s-promotion"></i>我的主题</p></el-row>
+    <!--查询表单-->
+    <el-form :inline="true" >
+        <el-form-item label="主题名">
+            <el-input v-model="searchMap.name" placeholder="主题名" class="filter-item" ></el-input></el-form-item>
+        <el-form-item label="关键词">
+            <el-input v-model="searchMap.keyWord" placeholder="关键词" class="filter-item" ></el-input></el-form-item>
+        <el-button class="dalfBut" @click="fetchData()">查询</el-button>
+        <el-button type="primary"  class="butT" @click="formVisible=true;pojo={userId:userId}">新增</el-button>
+    </el-form>
+    <el-table
+            :data="tableData"
+            style="width: 100%">
+        <el-table-column
+                prop="name"
+                label="论文题目"
+                width="180">
+        </el-table-column>
+        <el-table-column
+                prop="keyWord"
+                label="关键词"
+                width="180">
+        </el-table-column>
+        <el-table-column
+                prop="message"
+                label="主题说明">
+        </el-table-column>
+        <el-table-column
+                label="操作"  >
+            <template slot-scope="scope">
+                <el-button @click="edit(scope.row.id)" size="mini" type="primary" size="small">修改</el-button>
+                <el-button @click="dele(scope.row.id)" size="mini" type="danger" size="small">删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+    <div class="add-form">
+        <!--弹出窗口-->
+        <el-dialog  title="新增" :visible.sync="formVisible" >
+            <el-form label-width="80px">
+                <el-form-item label="主题名"><el-input v-model="pojo.name"></el-input></el-form-item>
+                <el-form-item label="关键词"><el-input v-model="pojo.keyWord"></el-input></el-form-item>
+                <el-form-item label="主题说明"><el-input v-model="pojo.message"></el-input></el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="save()">保存</el-button>
+                    <el-button @click="formVisible = false" >关闭</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </div>
+</div>
+
+
+<script>
+    new Vue({
+        el:"#app",
+        data(){
+            return {
+                activeIndex: '1',
+                tableData:[],
+                searchMap: {},
+                pojo:{},
+                formVisible: false,
+                userId:String
+            }
+        },
+        created(){
+            this.fetchData();
+            this.searchMap={userId:"admin"};
+            this.userId="admin";
+        },
+        methods: {
+            fetchData(){
+                axios.post(`/theme/findList.do`,this.searchMap).then(response => {
+                    this.tableData = response.data;
+                });
+            },
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            save (){
+                // this.pojo.image= this.imageUrl; //如页面有图片上传功能放开注释
+                axios.post(`/theme/${this.pojo.id==null?'add':'update'}.do`,this.pojo).then(response => {
+                    this.fetchData (); //刷新列表
+                    this.formVisible = false ;//关闭窗口
+                });
+            },
+            edit (id){
+                this.formVisible = true // 打开窗口
+                // 调用查询
+                axios.get(`/theme/findById.do?id=${id}`).then(response => {
+                    this.pojo = response.data;
+                    // this.imageUrl=this.pojo.image //显示图片  如页面有图片上传功能放开注释
+                })
+            },
+            dele (id){
+                this.$confirm('确定要删除此记录吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then( () => {
+                    axios.get(`/theme/delete.do?id=${id}`).then(response => {
+                        this.fetchData (); //刷新列表
+                    })
+                })
+            },
+        }
+    })
+</script>
+</body>
+</html>
